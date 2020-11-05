@@ -1,22 +1,25 @@
+const dogForm = document.querySelector("#dog-form")
+const tableBody = document.querySelector('#table-body')
+let currentDogId
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchDogs()
     clickHandler()
+    formHandler()
 })
 
 //fetch
-const data = {  };
 
-function editFetch(event) {
-    const id = event.target.dataset.id
-    fetch(`http://localhost:3000/dogs/${id}`, {
+function editFetch(dogObj) {
+    fetch(`http://localhost:3000/dogs/${dogObj.id}`, {
     method: 'PATCH', 
     headers: {
         'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(dogObj),
     })
-    .then(response => response.json())
-    .then(data => fillEditFields(data))
+    fetchDogs()
+    // .then(data => fillEditFields(data))
 }
 function fetchDogs() {
     fetch('http://localhost:3000/dogs')
@@ -26,14 +29,19 @@ function fetchDogs() {
 
 // render rows
 function fillEditFields(event) {
-    const name = event.target.parentElement
-    console.log(name)
+    const row = event.target.parentElement.closest('tr')
+    const name = row.querySelector('.dog-name').textContent
+    const breed = row.querySelector('.dog-breed').textContent
+    const sex = row.querySelector('.dog-sex').textContent
+    currentDogId = event.target.dataset.id
+
+    dogForm.name.value = name
+    dogForm.breed.value = breed
+    dogForm.sex.value = sex
 }
 
 function renderRow(dogObj) {
-    const tableBody = document.querySelector('#table-body')
     const tr = document.createElement('tr')
-    tr.className = 
     const tdName = document.createElement('td')
     tdName.className = "dog-name"
     const tdBreed = document.createElement('td')
@@ -57,6 +65,7 @@ function renderRow(dogObj) {
 }
 
 function renderAllRows(dogs) {
+    tableBody.innerHTML = ""
     dogs.forEach(renderRow)
 
 }
@@ -66,9 +75,20 @@ function clickHandler() {
     document.addEventListener("click", e => {
         if(e.target.className === "editBtn") {
             fillEditFields(e)
-        }
-        
+        }       
     })
 }
 
-/* <tr><td>Dog *Name*</td> <td>*Dog Breed*</td> <td>*Dog Sex*</td> <td><button>Edit</button></td></tr> */
+function formHandler() {
+    document.addEventListener('submit', e => {
+        e.preventDefault()
+        dogObj = {
+            name: e.target.name.value,
+            breed: e.target.breed.value,
+            sex: e.target.sex.value,
+            id: currentDogId
+        }
+        console.log(dogObj)
+    editFetch(dogObj)
+    })
+}
